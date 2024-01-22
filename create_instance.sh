@@ -1,3 +1,4 @@
+******************************************************************************************************* Launching an EC2 Instance Using Bash Script ***************************************************************************************************************************************************
 #!/bin/bash
 
 # Variables
@@ -35,3 +36,63 @@ if [ -z "$INSTANCE_ID" ]; then
 fi
 
 echo "Instance created with ID: $INSTANCE_ID"
+
+
+******************************************************************************************************* Launching an EC2 Instance UsingTerraform ***************************************************************************************************************************************************
+
+#provider.tf 
+
+provider "aws" {
+  region = "us-west-1"
+}
+
+#main.tf
+
+resource "aws_key_pair" "bametechkeys" {
+  key_name   = "bametechkeys"
+  public_key = file("${path.module}/bametechkeys.pub")
+}
+
+resource "aws_security_group" "WebAccessDMZ" {
+  name        = "WebAccessDMZ"
+  description = "Security group for web access"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "Test_Instance_1" {
+  ami           = "ami-03b11753a40ee7d1f"
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.bametechkeys.key_name
+
+  security_groups = [aws_security_group.WebAccessDMZ.name]
+
+  tags = {
+    Name = "Test-Instance-1"
+  }
+}
+
+#output.tf
+output "instance_public_ip" {
+  value = aws_instance.Test_Instance_1.public_ip
+}
+
