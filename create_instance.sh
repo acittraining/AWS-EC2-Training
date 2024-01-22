@@ -96,3 +96,48 @@ output "instance_public_ip" {
   value = aws_instance.Test_Instance_1.public_ip
 }
 
+************************************************************************************************************************** CloudFormation Template *************************************************************************************************************************
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template to create an EC2 instance with a security group.
+
+Parameters:
+  KeyName:
+    Type: String
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+
+Resources:
+  WebAccessDMZSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for web access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+  TestInstance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-03b11753a40ee7d1f
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !Ref WebAccessDMZSecurityGroup
+      Tags:
+        - Key: Name
+          Value: Test-Instance-1
+
+Outputs:
+  InstancePublicIP:
+    Description: The Public IP address of the EC2 instance.
+    Value: !GetAtt TestInstance1.PublicIp
