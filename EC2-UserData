@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bame Tech Courses</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; }
+        .container { width: 80%; margin: auto; overflow: hidden; }
+        header { background: #0056b3; color: white; padding-top: 30px; min-height: 70px; border-bottom: #0275d8 3px solid; }
+        header a { color: #ffffff; text-decoration: none; text-transform: uppercase; font-size: 16px; }
+        .banner, .about { padding: 15px 0; text-align: center; }
+        .banner h1, .about h2 { margin: 0; }
+        .courses { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 10px; }
+        .course { background: #ffffff; padding: 20px; margin-bottom: 20px; }
+        .course h2 { color: #0275d8; }
+        .footer { background: #0056b3; color: white; text-align: center; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Bame Tech</h1>
+        </div>
+    </header>
+
+    <div class="banner">
+        <p>Embark on a Journey of Learning and Excellence with Bame Tech!</p>
+    </div>
+
+    <div class="container">
+        <section class="about">
+            <h2>About Bame-Tech</h2>
+            <p>Bame-Tech is a pioneering technology education provider dedicated to empowering individuals through knowledge and skills in the latest tech trends. Our vision is to create a world where technology education is accessible to everyone, fostering innovation and excellence in the tech industry. At Bame-Tech, we stand out for our commitment to quality education, experienced instructors, and a curriculum that is constantly updated with the latest technological advancements. We believe in not just teaching, but inspiring our students to achieve greater heights in their careers.</p>
+        </section>
+
+        <section class="courses">
+            <!-- CCNA -->
+            <div class="course">
+                <h2>CCNA</h2>
+                <p>The CCNA course is a foundational program in networking. It covers network fundamentals, IP services, security fundamentals, automation, and programmability. This course is ideal for individuals starting their career in networking or those seeking to enhance their technical skills and knowledge.</p>
+            </div>
+            <!-- CCNP ENCOR -->
+            <div class="course">
+                <h2>CCNP ENCOR</h2>
+                <p>The CCNP ENCOR course offers advanced learning in enterprise network technologies. It includes training on dual-stack (IPv4 and IPv6) architecture, virtualization, infrastructure, network assurance, security, and automation. This course is suited for professionals aiming to deepen their understanding of enterprise networking.</p>
+            </div>
+            <!-- CCNP ENARSI -->
+            <div class="course">
+                <h2>CCNP ENARSI</h2>
+                <p>The CCNP ENARSI course focuses on advanced routing and services. Key topics include VPN services, security, and automation, with a specific emphasis on their applications in enterprise networks. It's designed for those who wish to specialize in enterprise routing and services.</p>
+            </div>
+            <!-- AWS-SAA -->
+            <div class="course">
+                <h2>AWS-SAA</h2>
+                <p>The AWS-SAA (Amazon Web Services Solutions Architect – Associate) course covers the fundamentals of building IT infrastructure on AWS. It is intended for individuals who want to learn how to optimize the use of the AWS Cloud by understanding AWS services and how these services fit into cloud-based solutions.</p>
+            </div>
+            <!-- AWS-SAP -->
+            <div class="course">
+                <h2>AWS-SAP</h2>
+                <p>The AWS-SAP (Amazon Web Services Solutions Architect – Professional) course is an advanced program focused on designing distributed systems and applications on the AWS platform. It is suitable for professionals who are already familiar with AWS and want to enhance their skills in designing and deploying scalable and reliable applications on AWS.</p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>Contact us at <a href
