@@ -1,0 +1,14 @@
+# First, you need to create a security group
+aws ec2 create-security-group --group-name my-sg --description "My security group"
+
+# Then, you need to add a rule to the security group to allow SSH
+aws ec2 authorize-security-group-ingress --group-name my-sg --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+# Add a rule to the security group to allow HTTP traffic on port 80
+aws ec2 authorize-security-group-ingress --group-name my-sg --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+# Add a rule to the security group to allow all ICMPv4 traffic
+aws ec2 authorize-security-group-ingress --group-name my-sg --protocol icmp --port -1 --cidr 0.0.0.0/0
+
+# Finally, you can launch an instance
+aws ec2 run-instances --image-id ami-0abcdef1234567890 --count 1 --instance-type t2.micro --key-name MyKeyPair --security-groups my-sg
