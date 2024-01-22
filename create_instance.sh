@@ -1,41 +1,25 @@
 ******************************************************************************************************* Launching an EC2 Instance Using Bash Script ***************************************************************************************************************************************************
 #!/bin/bash
 
-# Variables
-REGION="us-west-1"
-AMI_ID="ami-03b11753a40ee7d1f"
-INSTANCE_TYPE="t2.micro"
-SECURITY_GROUP_NAME="WebAccessDMZ"
-INSTANCE_NAME="Test-Instance-1"
+# Set AWS region
+export AWS_DEFAULT_REGION=us-west-1
 
-# Create security group and capture its ID
-SG_ID=$(aws ec2 create-security-group --group-name "$SECURITY_GROUP_NAME" --description "Security group for web access" --region "$REGION" --query 'GroupId' --output text)
+# Create a security group
+sg_id=$(aws ec2 create-security-group --group-name WebAccessDMZ1 --description "WebAccessDMZ1" --output text --query 'GroupId')
 
-# Check if security group was created successfully
-if [ -z "$SG_ID" ]; then
-    echo "Failed to create security group."
-    exit 1
-fi
+# Add rules to the security group
+aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol icmp --port -1 --cidr 0.0.0.0/0
 
-# Add SSH rule to security group
-aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 22 --cidr 0.0.0.0/0 --region "$REGION"
+# Launch an instance
+instance_id=$(aws ec2 run-instances --image-id ami-0abcdef1234567890 --count 1 --instance-type t2.micro --key-name ncaldemokey --security-group-ids $sg_id --output text --query 'Instances[0].InstanceId')
 
-# Add HTTP rule to security group
-aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 80 --cidr 0.0.0.0/0 --region "$REGION"
+# Tag the instance
+aws ec2 create-tags --resources $instance_id --tags Key=Name,Value=Bame-Tech-Web-1
 
-# Add ICMP rule to security group
-aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol icmp --port -1 --cidr 0.0.0.0/0 --region "$REGION"
+echo "Instance created with ID: $instance_id"
 
-# Launch the EC2 instance
-INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --count 1 --instance-type "$INSTANCE_TYPE" --security-group-ids "$SG_ID" --region "$REGION" --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME}]" --query 'Instances[0].InstanceId' --output text)
-
-# Check if instance was created successfully
-if [ -z "$INSTANCE_ID" ]; then
-    echo "Failed to create EC2 instance."
-    exit 1
-fi
-
-echo "Instance created with ID: $INSTANCE_ID"
 
 
 ******************************************************************************************************* Launching an EC2 Instance UsingTerraform ***************************************************************************************************************************************************
