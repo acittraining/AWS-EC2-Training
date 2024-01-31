@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation Template: Deploy EC2 with Security Group, Apache server, and Key Pair.'
+
+Parameters:
+  KeyPairName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+Resources:
+  MyWebDmzSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP, SSH, and ICMP traffic
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SecurityGroups:
+        - Ref: MyWebDmzSecurityGroup
+      ImageId: ami-0abcdef1234567890 # Replace with the AMI ID of your choice
+      KeyName: !Ref KeyPairName
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          echo "<html><body><h1>Hello from AWS CloudFormation!</h1></body></html>" > /var/www/html/index.html
+
+Outputs:
+  InstanceId:
+    Description: The Instance ID of the launched EC2 instance.
+    Value: !Ref MyEC2Instance
+
+  PublicIP:
+    Description: The Public IP address of the EC2 instance.
+    Value: !GetAtt MyEC2Instance.PublicIp
+
+  SecurityGroupName:
+    Description: The name of the Security Group.
+    Value: !Ref MyWebDmzSecurityGroup
