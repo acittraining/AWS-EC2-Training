@@ -1,1 +1,221 @@
 
+resource "aws_vpc" "test_vpc_1" {
+  cidr_block = "10.20.0.0/16"
+  tags = {
+    Name = "test-vpc-1"
+  }
+
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.test_vpc_1.id
+
+  tags = {
+    Name = "test-igw"
+  }
+
+}
+
+# Public Subnet 1
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id                  = aws_vpc.test_vpc_1.id
+  cidr_block              = "10.20.1.0/24" # Adjust the CIDR block as needed.
+  map_public_ip_on_launch = true           # Makes this a public subnet.
+  availability_zone       = "us-east-1a"   # Adjust the availability zone as needed.
+
+  tags = {
+    Name = "public-subnet-1"
+  }
+}
+
+# Public Subnet 2
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.test_vpc_1.id
+  cidr_block              = "10.20.2.0/24" # Adjust the CIDR block as needed.
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1b" # Adjust the availability zone as needed.
+
+  tags = {
+    Name = "public-subnet-2"
+  }
+}
+
+# Private Subnet 1
+resource "aws_subnet" "private_subnet_1" {
+  vpc_id            = aws_vpc.test_vpc_1.id
+  cidr_block        = "10.20.3.0/24" # Adjust the CIDR block as needed.
+  availability_zone = "us-east-1a"   # Adjust the availability zone as needed.
+
+  tags = {
+    Name = "private-subnet-1"
+  }
+}
+
+# Private Subnet 2
+resource "aws_subnet" "private_subnet_2" {
+  vpc_id            = aws_vpc.test_vpc_1.id
+  cidr_block        = "10.20.4.0/24" # Adjust the CIDR block as needed.
+  availability_zone = "us-east-1b"   # Adjust the availability zone as needed.
+
+  tags = {
+    Name = "private-subnet-2"
+  }
+}
+
+# Public Route Table 
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.test_vpc_1.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+}
+
+# Associate Public Subnets with Public Route Table
+resource "aws_route_table_association" "public_rta_1" {
+  subnet_id      = aws_subnet.public_subnet_1.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+resource "aws_route_table_association" "public_rta_2" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+# Private Route Table 1
+resource "aws_route_table" "private_route_table_1" {
+  vpc_id = aws_vpc.test_vpc_1.id
+
+  tags = {
+    Name = "private-route-table-1"
+  }
+}
+
+# Associate Private Subnet 1 with Private Route Table 1
+resource "aws_route_table_association" "private_rta_1" {
+  subnet_id      = aws_subnet.private_subnet_1.id
+  route_table_id = aws_route_table.private_route_table_1.id
+}
+
+# Private Route Table 2
+resource "aws_route_table" "private_route_table_2" {
+  vpc_id = aws_vpc.test_vpc_1.id
+
+  tags = {
+    Name = "private-route-table-2"
+  }
+}
+
+# Associate Private Subnet 2 with Private Route Table 2
+resource "aws_route_table_association" "private_rta_2" {
+  subnet_id      = aws_subnet.private_subnet_2.id
+  route_table_id = aws_route_table.private_route_table_2.id
+}
+
+# NAT Gateway for Public Subnet 1
+resource "aws_eip" "nat_eip_1" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat_gateway_1" {
+  allocation_id = aws_eip.nat_eip_1.id
+  subnet_id     = aws_subnet.public_subnet_1.id
+
+  tags = {
+    Name = "nat-gateway-1"
+  }
+}
+
+# Update Private Route Table 1 to use NAT Gateway 1
+resource "aws_route" "private_route_1" {
+  route_table_id         = aws_route_table.private_route_table_1.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_1.id
+}
+
+# NAT Gateway for Public Subnet 2
+resource "aws_eip" "nat_eip_2" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat_gateway_2" {
+  allocation_id = aws_eip.nat_eip_2.id
+  subnet_id     = aws_subnet.public_subnet_2.id
+
+  tags = {
+    Name = "nat-gateway-2"
+  }
+}
+
+# Update Private Route Table 2 to use NAT Gateway 2
+resource "aws_route" "private_route_2" {
+  route_table_id         = aws_route_table.private_route_table_2.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_2.id
+}
+
+resource "aws_security_group" "allow_web" {
+  name        = "allow_web_traffic"
+  description = "Allow Web inbound traffic"
+  vpc_id      = aws_vpc.test_vpc_1.id
+
+  # SSH
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # ICMP
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # HTTP
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_web"
+  }
+}
+
+resource "aws_instance" "public_instance" {
+  ami           = "ami-0440d3b780d96b29d" # Replace with the AMI ID of your choice.
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public_subnet_1.id
+
+
+  tags = {
+    Name = "PublicInstance"
+  }
+}
+
+resource "aws_instance" "private_instance" {
+  ami           = "ami-0440d3b780d96b29d" # Replace with the AMI ID of your choice.
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.private_subnet_1.id
+
+
+  tags = {
+    Name = "PrivateInstance"
+  }
+}
